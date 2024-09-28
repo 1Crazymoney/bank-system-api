@@ -9,7 +9,6 @@ class Bank(BaseModel):
     account_number: int
     balance: float
     is_active: bool
-    status: str
     type_of_account: str
 
 app = FastAPI()
@@ -22,7 +21,6 @@ banks = [
         account_number=123456789,
         balance=1000.0,
         is_active=True,
-        status="active",
         type_of_account="savings"
     ),
     Bank(
@@ -31,7 +29,6 @@ banks = [
         account_number=987654321,
         balance=2500.5,
         is_active=True,
-        status="active",
         type_of_account="joint"
     )
 ]
@@ -65,8 +62,6 @@ def update_bank_partial(account_number: int, bank: Bank):
                 b.balance = bank.balance
             if bank.is_active is not None:
                 b.is_active = bank.is_active
-            if bank.status is not None:
-                b.status = bank.status
             if bank.type_of_account is not None:
                 b.type_of_account = bank.type_of_account
             return b
