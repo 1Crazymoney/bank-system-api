@@ -1,149 +1,116 @@
-document.addEventListener('DOMContentLoaded', () => {
-    const apiUrl = 'https://cada-bank-api.vercel.app/banks';
+from fastapi import FastAPI, HTTPException, Query
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
+from typing import List, Optional
 
-    const createBankForm = document.getElementById('create-bank-form');
-    const banksTableBody = document.querySelector('#banks-table tbody');
-    const updateBankModal = document.getElementById('update-bank-modal');
-    const updateBankForm = document.getElementById('update-bank-form');
-    const closeModal = document.querySelector('.close');
+class Bank(BaseModel):
+    name: str
+    address: str
+    account_number: int
+    balance: float
+    is_active: bool
+    type_of_account: str
 
-    let currentAccountNumber = null;
-    let banks = [];
-    let isFullUpdate = false; // Flag to determine update type
+class BankUpdate(BaseModel):
+    name: Optional[str] = None
+    address: Optional[str] = None
+    account_number: Optional[int] = None
+    balance: Optional[float] = None
+    is_active: Optional[bool] = None
+    type_of_account: Optional[str] = None
 
-    createBankForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const bank = {
-            name: document.getElementById('name').value,
-            address: document.getElementById('address').value,
-            account_number: parseInt(document.getElementById('account_number').value),
-            balance: parseFloat(document.getElementById('balance').value),
-            is_active: document.getElementById('is_active').checked,
-            type_of_account: document.getElementById('type_of_account').value
-        };
-        console.log('Creating bank:', bank); // Debugging log
-        try {
-            const response = await fetch(apiUrl, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(bank)
-            });
-            const data = await response.json();
-            console.log('Response:', data); // Debugging log
-            if (response.ok) {
-                loadBanks();
-            } else {
-                console.error('Error creating bank:', data);
-            }
-        } catch (error) {
-            console.error('Error creating bank:', error);
-        }
-    });
+app = FastAPI()
 
-    async function loadBanks() {
-        try {
-            const response = await fetch(apiUrl);
-            banks = await response.json();
-            banksTableBody.innerHTML = '';
-            banks.forEach(bank => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${bank.name}</td>
-                    <td>${bank.address}</td>
-                    <td>${bank.account_number}</td>
-                    <td>${bank.balance}</td>
-                    <td>${bank.is_active}</td>
-                    <td>${bank.type_of_account}</td>
-                    <td>
-                        <button onclick="openUpdateModal(${bank.account_number}, false)">Partial Update</button>
-                        <button onclick="openUpdateModal(${bank.account_number}, true)">Full Update</button>
-                        <button onclick="deleteBank(${bank.account_number})">Delete</button>
-                    </td>
-                `;
-                banksTableBody.appendChild(row);
-            });
-        } catch (error) {
-            console.error('Error loading banks:', error);
-        }
-    }
+# In-memory storage for banks
+banks = [
+    Bank(
+        name="Bank of Example",
+        address="123 Example Street",
+        account_number=123456789,
+        balance=1000.0,
+        is_active=True,
+        type_of_account="savings"
+    ),
+    Bank(
+        name="Example National Bank",
+        address="456 Example Avenue",
+        account_number=987654321,
+        balance=2500.5,
+        is_active=True,
+        type_of_account="joint"
+    )
+]
 
-    window.openUpdateModal = (accountNumber, fullUpdate) => {
-        currentAccountNumber = accountNumber;
-        isFullUpdate = fullUpdate; // Set the update type
-        const bank = banks.find(b => b.account_number === accountNumber);
-        document.getElementById('update-name').value = bank.name;
-        document.getElementById('update-address').value = bank.address;
-        document.getElementById('update-balance').value = bank.balance;
-        document.getElementById('update-is_active').checked = bank.is_active;
-        document.getElementById('update-type_of_account').value = bank.type_of_account;
-        updateBankModal.style.display = 'flex';
-    };
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"]
+)
 
-    updateBankForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const updatedBank = {
-            name: document.getElementById('update-name').value || undefined,
-            address: document.getElementById('update-address').value || undefined,
-            account_number: currentAccountNumber, // Include account_number for PUT request
-            balance: parseFloat(document.getElementById('update-balance').value) || undefined,
-            is_active: document.getElementById('update-is_active').checked,
-            type_of_account: document.getElementById('update-type_of_account').value || undefined
-        };
-        console.log('Updating bank:', updatedBank); // Debugging log
-        try {
-            const response = await fetch(`${apiUrl}/${currentAccountNumber}`, {
-                method: isFullUpdate ? 'PUT' : 'PATCH', // Use PUT or PATCH based on the flag
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(updatedBank)
-            });
-            const data = await response.json();
-            console.log('Response:', data); // Debugging log
-            if (response.ok) {
-                updateBankModal.style.display = 'none';
-                loadBanks();
-            } else {
-                console.error('Error updating bank:', data);
-                if (data.detail) {
-                    data.detail.forEach(error => {
-                        console.error(`Field: ${error.loc.join(' -> ')}, Error: ${error.msg}`);
-                    });
-                }
-            }
-        } catch (error) {
-            console.error('Error updating bank:', error);
-        }
-    });
+@app.get("/banks", response_model=List[Bank])
+def get_banks():
+    return banks
 
-    window.deleteBank = async (accountNumber) => {
-        try {
-            const response = await fetch(`${apiUrl}/${accountNumber}`, {
-                method: 'DELETE'
-            });
-            const data = await response.json();
-            console.log('Deleted bank:', data); // Debugging log
-            if (response.ok) {
-                loadBanks();
-            } else {
-                console.error('Error deleting bank:', data);
-            }
-        } catch (error) {
-            console.error('Error deleting bank:', error);
-        }
-    };
+@app.post("/banks", response_model=Bank)
+def create_bank(bank: Bank):
+    banks.append(bank)
+    return bank
 
-    closeModal.onclick = () => {
-        updateBankModal.style.display = 'none';
-    };
+@app.patch("/banks/{account_number}", response_model=Bank)
+def update_bank_partial(account_number: int, bank: BankUpdate):
+    for b in banks:
+        if b.account_number == account_number:
+            if bank.name is not None:
+                b.name = bank.name
+            if bank.address is not None:
+                b.address = bank.address
+            if bank.balance is not None:
+                b.balance = bank.balance
+            if bank.is_active is not None:
+                b.is_active = bank.is_active
+            if bank.type_of_account is not None:
+                b.type_of_account = bank.type_of_account
+            return b
+    raise HTTPException(status_code=404, detail="Bank not found")
 
-    window.onclick = (event) => {
-        if (event.target === updateBankModal) {
-            updateBankModal.style.display = 'none';
-        }
-    };
+@app.put("/banks/{account_number}", response_model=Bank)
+def update_bank(account_number: int, bank: Bank):
+    for i, b in enumerate(banks):
+        if b.account_number == account_number:
+            banks[i] = bank
+            return bank
+    raise HTTPException(status_code=404, detail="Bank not found")
 
-    loadBanks();
-});
+@app.delete("/banks/{account_number}", response_model=Bank)
+def delete_bank(account_number: int):
+    for i, b in enumerate(banks):
+        if b.account_number == account_number:
+            return banks.pop(i)
+    raise HTTPException(status_code=404, detail="Bank not found")
+
+@app.put("/banks/{account_number}/deposit", response_model=Bank)
+def deposit(account_number: int, amount: float = Query(...)):
+    for b in banks:
+        if b.account_number == account_number:
+            b.balance += amount
+            return b
+    raise HTTPException(status_code=404, detail="Bank not found")
+
+@app.put("/banks/{account_number}/withdraw", response_model=Bank)
+def withdraw(account_number: int, amount: float = Query(...)):
+    for b in banks:
+        if b.account_number == account_number:
+            if b.balance < amount:
+                raise HTTPException(status_code=400, detail="Insufficient funds")
+            b.balance -= amount
+            return b
+    raise HTTPException(status_code=404, detail="Bank not found")
+
+@app.get("/banks/{account_number}", response_model=Bank)
+def get_bank(account_number: int):
+    for b in banks:
+        if b.account_number == account_number:
+            return b
+    raise HTTPException(status_code=404, detail="Bank not found")
