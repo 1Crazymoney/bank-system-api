@@ -1,7 +1,7 @@
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from typing import List
+from typing import List, Optional
 
 class Bank(BaseModel):
     name: str
@@ -10,6 +10,14 @@ class Bank(BaseModel):
     balance: float
     is_active: bool
     type_of_account: str
+
+class BankUpdate(BaseModel):
+    name: Optional[str] = None
+    address: Optional[str] = None
+    account_number: Optional[int] = None
+    balance: Optional[float] = None
+    is_active: Optional[bool] = None
+    type_of_account: Optional[str] = None
 
 app = FastAPI()
 
@@ -51,7 +59,7 @@ def create_bank(bank: Bank):
     return bank
 
 @app.patch("/banks/{account_number}", response_model=Bank)
-def update_bank_partial(account_number: int, bank: Bank):
+def update_bank_partial(account_number: int, bank: BankUpdate):
     for b in banks:
         if b.account_number == account_number:
             if bank.name is not None:
