@@ -1,8 +1,7 @@
-from fastapi import FastAPI, HTTPException, Query, Depends
+from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List, Optional
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 
 class Bank(BaseModel):
     name: str
@@ -20,13 +19,7 @@ class BankUpdate(BaseModel):
     is_active: Optional[bool] = None
     type_of_account: Optional[str] = None
 
-class User(BaseModel):
-    account_number: int
-    pin: str
-
 app = FastAPI()
-
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 # In-memory storage for banks
 banks = [
@@ -55,22 +48,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"]
 )
-
-users = []
-
-@app.post("/token")
-async def login(form_data: OAuth2PasswordRequestForm = Depends()):
-    user = next((u for u in users if u.account_number == int(form_data.username) and u.pin == form_data.password), None)
-    if not user:
-        raise HTTPException(status_code=400, detail="Invalid credentials")
-    return {"access_token": form_data.username, "token_type": "bearer"}
-
-@app.post("/users", response_model=User)
-def create_user(user: User):
-    if any(u.account_number == user.account_number for u in users):
-        raise HTTPException(status_code=400, detail="User already exists")
-    users.append(user)
-    return user
 
 @app.get("/banks", response_model=List[Bank])
 def get_banks():
