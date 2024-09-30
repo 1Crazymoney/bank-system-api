@@ -1,11 +1,12 @@
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 from typing import List, Optional
 
 class Bank(BaseModel):
     name: str
     address: str
+    email: EmailStr
     account_number: int
     balance: float
     is_active: bool
@@ -14,6 +15,7 @@ class Bank(BaseModel):
 class BankUpdate(BaseModel):
     name: Optional[str] = None
     address: Optional[str] = None
+    email: Optional[EmailStr] = None
     account_number: Optional[int] = None
     balance: Optional[float] = None
     is_active: Optional[bool] = None
@@ -21,19 +23,20 @@ class BankUpdate(BaseModel):
 
 app = FastAPI()
 
-# In-memory storage for banks
 banks = [
     Bank(
-        name="Bank of Example",
+        name="john doe",
         address="123 Example Street",
+        email="johndoe@example.com",
         account_number=123456789,
         balance=1000.0,
         is_active=True,
         type_of_account="savings"
     ),
     Bank(
-        name="Example National Bank",
+        name="mark smith",
         address="456 Example Avenue",
+        email="marksmith@example.com",
         account_number=987654321,
         balance=2500.5,
         is_active=True,
@@ -66,6 +69,8 @@ def update_bank_partial(account_number: int, bank: BankUpdate):
                 b.name = bank.name
             if bank.address is not None:
                 b.address = bank.address
+            if bank.email is not None:
+                b.email = bank.email
             if bank.balance is not None:
                 b.balance = bank.balance
             if bank.is_active is not None:
