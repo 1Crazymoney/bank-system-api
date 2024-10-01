@@ -56,7 +56,7 @@ app.add_middleware(
 def get_banks():
     return banks
 
-@app.get("/banks/email/{email}", response_model=Bank)
+@app.get("/banks/email/{email}", response_model=List[Bank])
 def get_bank_by_email(email: EmailStr):
     matches = []
     for b in banks:
