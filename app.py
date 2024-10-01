@@ -90,6 +90,14 @@ def update_bank_partial(account_number: int, bank: BankUpdate):
             return b
     raise HTTPException(status_code=404, detail="Bank not found")
 
+@app.patch("/banks/{account_number}/balance", response_model=Bank)
+def update_balance(account_number: int, amount: float = Query(...)):
+    for b in banks:
+        if b.account_number == account_number:
+            b.balance = amount
+            return b
+    raise HTTPException(status_code=404, detail="Bank not found")
+
 @app.put("/banks/{account_number}", response_model=Bank)
 def update_bank(account_number: int, bank: Bank):
     for i, b in enumerate(banks):
