@@ -56,6 +56,13 @@ app.add_middleware(
 def get_banks():
     return banks
 
+@app.get("/bank/email/{email}", response_model=Bank)
+def get_bank_by_email(email: EmailStr):
+    for b in banks:
+        if b.email == email:
+            return b
+    raise HTTPException(status_code=404, detail="Bank not found")
+
 @app.post("/banks", response_model=Bank)
 def create_bank(bank: Bank):
     banks.append(bank)
