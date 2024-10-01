@@ -56,11 +56,14 @@ app.add_middleware(
 def get_banks():
     return banks
 
-@app.get("/bank/email/{email}", response_model=Bank)
+@app.get("/banks/email/{email}", response_model=Bank)
 def get_bank_by_email(email: EmailStr):
+    matches = []
     for b in banks:
         if b.email == email:
-            return b
+            matches.append(b)
+    if matches:
+        return matches
     raise HTTPException(status_code=404, detail="Bank not found")
 
 @app.post("/banks", response_model=Bank)
