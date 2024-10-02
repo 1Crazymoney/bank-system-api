@@ -52,7 +52,7 @@ banks = [
 users = [
     UserAccount(
         name="goku",
-        email="goku@dragon.com"
+        email="goku@dragon.com",
         address="123 kame house"),
     UserAccount(
         name="vegeta",
