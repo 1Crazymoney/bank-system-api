@@ -21,27 +21,43 @@ class BankUpdate(BaseModel):
     is_active: Optional[bool] = None
     type_of_account: Optional[str] = None
 
+class UserAccount(BaseModel):
+    name: str
+    email: EmailStr
+    address: str
+
 app = FastAPI()
 
 banks = [
     Bank(
-        name="john doe",
+        name="goku",
         address="123 Example Street",
-        email="johndoe@example.com",
+        email="goku@dragon.com",
         account_number=123456789,
         balance=1000.0,
         is_active=True,
         type_of_account="savings"
     ),
     Bank(
-        name="mark smith",
+        name="vegeta",
         address="456 Example Avenue",
-        email="marksmith@example.com",
+        email="vegeta@dragon.com",
         account_number=987654321,
         balance=2500.5,
         is_active=True,
         type_of_account="joint"
     )
+]
+
+users = [
+    UserAccount(
+        name="goku",
+        email="goku@dragon.com"
+        address="123 kame house"),
+    UserAccount(
+        name="vegeta",
+        email="vegeta@dragon.com",
+        address="456 capsule corp")
 ]
 
 app.add_middleware(
@@ -137,3 +153,13 @@ def get_bank(account_number: int):
         if b.account_number == account_number:
             return b
     raise HTTPException(status_code=404, detail="Bank not found")
+
+
+@app.post("/user", response_model=UserAccount)
+def create_user(user: UserAccount):
+    users.append(user)
+    return user
+
+@app.get("/user")
+def get_user():
+    return users
