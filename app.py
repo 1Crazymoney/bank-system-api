@@ -160,6 +160,6 @@ def create_user(user: UserAccount):
     users.append(user)
     return user
 
-@app.get("/user")
+@app.get("/users")
 def get_user():
     return users
