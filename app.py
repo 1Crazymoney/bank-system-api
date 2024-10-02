@@ -163,3 +163,10 @@ def create_user(user: UserAccount):
 @app.get("/users")
 def get_user():
     return users
+
+@app.get("/users/email/{email}")
+def get_user_by_email(email: EmailStr):
+    for u in users:
+        if u.email == email:
+            return u
+    raise HTTPException(status_code=404, detail="User not found")
