@@ -30,34 +30,34 @@ app = FastAPI()
 
 banks = [
     Bank(
-        name="goku",
-        address="123 Example Street",
-        email="goku@dragon.com",
+        name="Ron Vincent Cada",
+        address="123 Mauban, Quezon",
+        email="cronvincent@gmail.com",
         account_number=123456789,
         balance=1000.0,
         is_active=True,
         type_of_account="savings"
     ),
     Bank(
-        name="vegeta",
-        address="456 Example Avenue",
-        email="vegeta@dragon.com",
+        name="Eyre Vincent Gonzales",
+        address="456 Tayabas, Quezon",
+        email="eyre@gmail.com",
         account_number=987654321,
         balance=2500.5,
         is_active=True,
-        type_of_account="joint"
+        type_of_account="current"
     )
 ]
 
 users = [
     UserAccount(
-        name="goku",
-        email="goku@dragon.com",
-        address="123 kame house"),
+        name="Ron Vincent Cada",
+        email="cronvincent@gmail.com",
+        address="123 Mauban, Quezon"),
     UserAccount(
-        name="vegeta",
-        email="vegeta@dragon.com",
-        address="456 capsule corp")
+        name="Eyre Vincent Gonzales",
+        email="eyre@gmail.com",
+        address="456 Tayabas, Quezon")
 ]
 
 app.add_middleware(
